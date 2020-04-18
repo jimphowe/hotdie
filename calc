@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+
+import statistics
+from itertools import product
+
+# Class representing a roll in hot die, which has various attributes
+class Dice_roll:
+  def __init__(self,roll):
+    self.roll = roll
+    self.chance = chance(roll)
+    self.hotdie = hotdie(roll)
+    self.one_off_hotdie = one_off_hotdie(roll)
+    self.value = value(roll)
+    self.numways = numways(roll)
+
+# Helper method for calculating attributes
+def counts(roll):
+  result = {}
+  for die in roll:
+    if die in result:
+      result[die] += 1
+    else:
+      result[die] = 1
+  return [x for x in sorted(result.values())]
+
+# Retrurns the probability of a certain roll occuring
+def chance(roll):
+  numbers = counts(roll)
+  if numbers == [6]:
+    return '0.0000214334'
+  elif numbers == [1,5]:
+    return '0.0001286008'
+  elif numbers == [2,4]:
+    return '0.0003215020'
+  elif numbers == [3,3]:
+    return '0.0004286694'
+  elif numbers == [1,1,4]:
+    return '0.0006430041'
+  elif numbers == [1,2,3]:
+    return '0.0012860082'
+  elif numbers == [2,2,2]:
+    return '0.0019290123'
+  elif numbers == [1,1,1,3]:
+    return '0.0025720164'
+  elif numbers == [1,1,2,2]:
+    return '0.0038580246'
+  elif numbers == [1,1,1,1,2]:
+    return '0.0077160493'
+  elif numbers == [1,1,1,1,1,1]:
+    return '0.0154320987'
+  else:
+    return 'unk'
+
+def numways(roll):
+  numbers = counts(roll)
+  if numbers == [6]:
+    return '1'
+  elif numbers == [1,5]:
+    return '6'
+  elif numbers == [2,4]:
+    return '15'
+  elif numbers == [3,3]:
+    return '20'
+  elif numbers == [1,1,4]:
+    return '30'
+  elif numbers == [1,2,3]:
+    return '60'
+  elif numbers == [2,2,2]:
+    return '90'
+  elif numbers == [1,1,1,3]:
+    return '120'
+  elif numbers == [1,1,2,2]:
+    return '180'
+  elif numbers == [1,1,1,1,2]:
+    return '360'
+  elif numbers == [1,1,1,1,1,1]:
+    return '720'
+  else:
+    return 'unk'
+
+# Returns whether or not a roll is a hot die
+def hotdie(roll):
+  numbers = counts(roll)
+  if numbers == [2,2,2] or numbers == [1,1,1,1,1,1]:
+    return True
+  else:
+    return False
+
+# Returns if a roll is one die off from a hot die
+def one_off_hotdie(roll):
+  if(hotdie(roll)):
+    return False
+  numbers = counts(roll)
+  if numbers == [1,2,3] or numbers == [1,1,2,2] or numbers == [1,1,1,1,2]:
+    return True
+  return False
+
+# Returns the value of a dice roll
+def value(roll):
+  numbers = counts(roll)
+  result = 0
+  most_common = int(max(set(roll), key = roll.count))
+  
+  if(hotdie(roll)):
+    result += 1500
+  
+  if numbers == [6]:
+    result += 800 * int(max(set(roll), key = roll.count))
+  if numbers == [1,5]:
+    result += 400 * most_common
+    if 1 in roll and not most_common == 1:
+      result += 100
+    if 5 in roll and not most_common == 5:
+      result += 50
+  if numbers == [2,4]:
+    result += 200 * most_common
+    if 1 in roll and not most_common == 1:
+      result += 100 * roll.count(1)
+    if 5 in roll and not most_common == 5:
+      result += 50 * roll.count(5)
+  if numbers == [3,3]:
+    for value in set(roll):
+      result += 100 * value
+  if numbers == [1,1,4]:
+    result += 200 * most_common
+    if 1 in roll and not most_common == 1:
+      result += 100
+    if 5 in roll and not most_common == 5:
+      result += 50
+  if numbers == [1,2,3]:
+    result += 100 * most_common
+    if 1 in roll and not most_common == 1:
+      result += 100 * roll.count(1)
+    if 5 in roll and not most_common == 5:
+      result += 50 * roll.count(5)
+  if numbers == [1,1,1,3]:
+    result += 100 * most_common
+    if 1 in roll and not most_common == 1:
+      result += 100 * roll.count(1)
+    if 5 in roll and not most_common == 5:
+      result += 50 * roll.count(5)
+  if numbers == [1,1,2,2]:
+    if not 5 in roll and not 1 in roll:
+      return 0
+    if 1 in roll:
+      result += 100 * roll.count(1)
+    if 5 in roll:
+      result += 50 * roll.count(5)
+  if numbers == [1,1,1,1,2]:
+    if not 5 in roll and not 1 in roll:
+      return 0
+    if 1 in roll:
+      result += 100 * roll.count(1)
+    if 5 in roll:
+      result += 50 * roll.count(5)
+  return result
+  
+
+# Initialize set of roll tuples to be used to create roll object, and populate the set
+rolls = set()
+for x in list(product([1,2,3,4,5,6], repeat = 6)):
+  rolls.add(tuple(sorted(x)))
+
+
+# Initialize list of roll objects with various properties, and add rolls to it
+dice_rolls = []
+for roll in sorted(rolls):
+  dice_rolls.append(Dice_roll(roll))
+
+
+# Print attributes about each roll
+for dice_roll in dice_rolls:
+  print(str(dice_roll.roll) + ' ' + dice_roll.chance + ' ' + str(dice_roll.value))
+
+
+
+
+# Print meta analysis
+total = 0
+for dice_roll in dice_rolls:
+  total += float(dice_roll.chance)
+print("Total chance: " + str(total))
+
+total = 0
+for dice_roll in dice_rolls:
+  if(dice_roll.hotdie):
+    total += float(dice_roll.chance)
+print("Total hotdie chance: " + str(total))
+
+total = 0
+for dice_roll in dice_rolls:
+  if(dice_roll.one_off_hotdie):
+    total += float(dice_roll.chance)
+print("Total one off chance: " + str(total))
+
+total = 0
+for dice_roll in dice_rolls:
+  if(dice_roll.value == 0):
+    total += float(dice_roll.chance)
+print("Chance of busting: " + str(total))
+
+total = 0
+for dice_roll in dice_rolls:
+  total += float(dice_roll.value) * float(dice_roll.chance)
+print("Average first roll: " + str(total))
+
+total = 0
+vals = []
+for dice_roll in dice_rolls:
+  for i in range (0,int(dice_roll.numways)):
+    vals.append(int(dice_roll.value))
+print("Median first roll: " + str(statistics.median(vals)))
